@@ -205,6 +205,18 @@ namespace RecceSoft.Result
             return vtr;
         }
 
-      
+        public static Result<T> Error(List<string> errorMessages = null)
+        {
+            Result<T> vtr = new();
+            vtr.SetError(errorMessages);
+            return vtr;
+        }
+
+        new public static Result<T> Error(string errorMessage)
+        {
+            Result<T> vtr = new();
+            vtr.SetError(errorMessage);
+            return vtr;
+        }
     }
 }
