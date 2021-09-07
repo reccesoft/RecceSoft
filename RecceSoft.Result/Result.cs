@@ -50,10 +50,10 @@ namespace RecceSoft.Result
             return vtr;
         }
 
-        public static async Task<Result> OkOrDatabaseError(Func<Task<int>> performDatabaseTransaction, string databaseErrorMessage = null, string databaseSuccessMessage = null)
+        public static Result OkOrDatabaseError(int numberOfRowsChanged, string databaseErrorMessage = null, string databaseSuccessMessage = null)
         {
             Result vtr = new();
-            await vtr.SetOkOrDatabaseError(performDatabaseTransaction, databaseErrorMessage, databaseSuccessMessage);
+            vtr.SetOkOrDatabaseError(numberOfRowsChanged, databaseErrorMessage, databaseSuccessMessage);
             return vtr;
         }
 
@@ -101,28 +101,20 @@ namespace RecceSoft.Result
             }
         }
 
-        public async Task SetOkOrDatabaseError(Func<Task<int>> performDatabaseTransaction, string databaseErrorMessage = null, string databaseSuccessMessage = null)
+        public void SetOkOrDatabaseError(int numberOfRowsChanged, string databaseErrorMessage = null, string databaseSuccessMessage = null)
         {
             if (string.IsNullOrWhiteSpace(databaseErrorMessage))
             {
                 databaseErrorMessage = DefaultErrorMessageDatabaseTransaction;
             }
 
-            if (performDatabaseTransaction == null)
+            if (numberOfRowsChanged < 1)
             {
                 SetError(databaseErrorMessage);
             }
             else
             {
-                var rowsAffected = await performDatabaseTransaction();
-                if (rowsAffected > 0)
-                {
-                    SetOk(databaseSuccessMessage);
-                }
-                else
-                {
-                    SetError(databaseErrorMessage);
-                }
+                SetOk(databaseSuccessMessage);
             }
         }
 
@@ -167,9 +159,9 @@ namespace RecceSoft.Result
             }
         }
 
-        public async Task SetOkOrDatabaseErrorAndAttachReturnedObject(Func<Task<int>> performDatabaseTransaction, Func<Task<T>> getObjectToReturnOnlyWhenDatabaseTransactionSuccessful, string databaseErrorMessage = null, string databaseSuccessMessage = null)
+        public async Task SetOkOrDatabaseErrorAndAttachReturnedObject(int numberOfRowsChanged, Func<Task<T>> getObjectToReturnOnlyWhenDatabaseTransactionSuccessful, string databaseErrorMessage = null, string databaseSuccessMessage = null)
         {
-            await SetOkOrDatabaseError(performDatabaseTransaction, databaseErrorMessage, databaseSuccessMessage);
+            SetOkOrDatabaseError(numberOfRowsChanged, databaseErrorMessage, databaseSuccessMessage);
             if (IsSuccess && getObjectToReturnOnlyWhenDatabaseTransactionSuccessful != null)
             {
                 ReturnedObject = await getObjectToReturnOnlyWhenDatabaseTransactionSuccessful();
@@ -198,10 +190,10 @@ namespace RecceSoft.Result
             return vtr;
         }
 
-        public static async Task<Result<T>> OkOrDatabaseErrorAndAttachReturnedObject(Func<Task<int>> performDatabaseTransaction, Func<Task<T>> getObjectToReturnOnlyWhenDatabaseTransactionSuccessful, string databaseErrorMessage = null, string databaseSuccessMessage = null)
+        public static async Task<Result<T>> OkOrDatabaseErrorAndAttachReturnedObject(int numberOfRowsChanged, Func<Task<T>> getObjectToReturnOnlyWhenDatabaseTransactionSuccessful, string databaseErrorMessage = null, string databaseSuccessMessage = null)
         {
             Result<T> vtr = new();
-            await vtr.SetOkOrDatabaseErrorAndAttachReturnedObject(performDatabaseTransaction, getObjectToReturnOnlyWhenDatabaseTransactionSuccessful, databaseErrorMessage, databaseSuccessMessage);
+            await vtr.SetOkOrDatabaseErrorAndAttachReturnedObject(numberOfRowsChanged, getObjectToReturnOnlyWhenDatabaseTransactionSuccessful, databaseErrorMessage, databaseSuccessMessage);
             return vtr;
         }
 
