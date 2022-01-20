@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RecceSoft.Result
+namespace RecceSoft
 {
-    public class Result
+    public class ResultObject
     {
         public const string DefaultOkMessage = "Operation Succeeded";
         public const string DefaultErrorMessage = "Operation did not complete successfully";
@@ -16,43 +16,43 @@ namespace RecceSoft.Result
         public bool IsSuccess { get; set; }
         public List<string> Messages { get; set; } = new();
 
-        public Result()
+        public ResultObject()
         {
             IsSuccess = false;
             Messages = new() { DefaultNoActionTakenMessage };
         }
 
-        public static Result Ok(string okMessage = null)
+        public static ResultObject Ok(string okMessage = null)
         {
-            Result vtr = new();
+            ResultObject vtr = new();
             vtr.SetOk(okMessage);
             return vtr;
         }
 
-        public static Result Error(string errorMessage = null)
+        public static ResultObject Error(string errorMessage = null)
         {
-            Result vtr = new();
+            ResultObject vtr = new();
             vtr.SetError(errorMessage);
             return vtr;
         }
 
-        public static Result NotFound(string itemName = null)
+        public static ResultObject NotFound(string itemName = null)
         {
-            Result vtr = new();
+            ResultObject vtr = new();
             vtr.SetNotFound(itemName);
             return vtr;
         }
 
-        public static Result OkOrNotFound<T>(T item, string itemNameNotFound = null, string okMessageIfItemIsFound = null)
+        public static ResultObject OkOrNotFound<T>(T item, string itemNameNotFound = null, string okMessageIfItemIsFound = null)
         {
-            Result vtr = new();
+            ResultObject vtr = new();
             vtr.SetOkOrNotFound(item, itemNameNotFound, okMessageIfItemIsFound);
             return vtr;
         }
 
-        public static Result OkOrDatabaseError(int numberOfRowsChanged, string databaseErrorMessage = null, string databaseSuccessMessage = null)
+        public static ResultObject OkOrDatabaseError(int numberOfRowsChanged, string databaseErrorMessage = null, string databaseSuccessMessage = null)
         {
-            Result vtr = new();
+            ResultObject vtr = new();
             vtr.SetOkOrDatabaseError(numberOfRowsChanged, databaseErrorMessage, databaseSuccessMessage);
             return vtr;
         }
@@ -79,6 +79,11 @@ namespace RecceSoft.Result
         {
             message = String.IsNullOrWhiteSpace(message) ? DefaultErrorMessage : message;
             SetError(new List<string>() { message });
+        }
+
+        public void SetError(Exception ex, bool setRealExceptionMessage = true)
+        {
+            SetError(setRealExceptionMessage ? ex.Message : DefaultGenericException);
         }
 
         public void SetNotFound(string itemName = null)
@@ -118,15 +123,15 @@ namespace RecceSoft.Result
             }
         }
 
-        
+
 
     }
 
-    public class Result<T> : Result
+    public class ResultObject<T> : ResultObject
     {
         public T ReturnedObject { get; set; }
 
-        public Result() : base()
+        public ResultObject() : base()
         {
         }
 
@@ -168,47 +173,54 @@ namespace RecceSoft.Result
             }
         }
 
-        public static Result<T> OkAndAttachReturnedObject(T objectToReturn, string okMessage = null)
+        public static ResultObject<T> OkAndAttachReturnedObject(T objectToReturn, string okMessage = null)
         {
-            Result<T> vtr = new();
+            ResultObject<T> vtr = new();
             vtr.SetOkAndAttachReturnedObject(objectToReturn, okMessage);
             return vtr;
         }
 
 
-        public static Result<T> OkOrNotFoundAndAttachReturnedObject(T item, string itemNameNotFound = null, string okMessageIfItemIsFound = null)
+        public static ResultObject<T> OkOrNotFoundAndAttachReturnedObject(T item, string itemNameNotFound = null, string okMessageIfItemIsFound = null)
         {
-            Result<T> vtr = new();
+            ResultObject<T> vtr = new();
             vtr.SetOkOrNotFoundAndAttachReturnedObject(item, itemNameNotFound, okMessageIfItemIsFound);
             return vtr;
         }
 
-        public static async Task<Result<T>> OkOrNotFoundAndAttachReturnedObjectFromMethod<Y>(Y item, Func<Task<T>> getObjectToReturnIfObjectWasFound, string itemNameNotFound = null, string okMessageIfItemIsFound = null)
+        public static async Task<ResultObject<T>> OkOrNotFoundAndAttachReturnedObjectFromMethod<Y>(Y item, Func<Task<T>> getObjectToReturnIfObjectWasFound, string itemNameNotFound = null, string okMessageIfItemIsFound = null)
         {
-            Result<T> vtr = new();
+            ResultObject<T> vtr = new();
             await vtr.SetOkOrNotFoundAndAttachReturnedObjectFromMethod(item, getObjectToReturnIfObjectWasFound, itemNameNotFound, okMessageIfItemIsFound);
             return vtr;
         }
 
-        public static async Task<Result<T>> OkOrDatabaseErrorAndAttachReturnedObject(int numberOfRowsChanged, Func<Task<T>> getObjectToReturnOnlyWhenDatabaseTransactionSuccessful, string databaseErrorMessage = null, string databaseSuccessMessage = null)
+        public static async Task<ResultObject<T>> OkOrDatabaseErrorAndAttachReturnedObject(int numberOfRowsChanged, Func<Task<T>> getObjectToReturnOnlyWhenDatabaseTransactionSuccessful, string databaseErrorMessage = null, string databaseSuccessMessage = null)
         {
-            Result<T> vtr = new();
+            ResultObject<T> vtr = new();
             await vtr.SetOkOrDatabaseErrorAndAttachReturnedObject(numberOfRowsChanged, getObjectToReturnOnlyWhenDatabaseTransactionSuccessful, databaseErrorMessage, databaseSuccessMessage);
             return vtr;
         }
 
-        public static Result<T> Error(List<string> errorMessages = null)
+        public static ResultObject<T> Error(List<string> errorMessages = null)
         {
-            Result<T> vtr = new();
+            ResultObject<T> vtr = new();
             vtr.SetError(errorMessages);
             return vtr;
         }
 
-        new public static Result<T> Error(string errorMessage)
+        new public static ResultObject<T> Error(string errorMessage)
         {
-            Result<T> vtr = new();
+            ResultObject<T> vtr = new();
             vtr.SetError(errorMessage);
             return vtr;
+        }
+
+        public void CopyOtherResultObject(ResultObject resultObject, T objectToAttachCanBeNull)
+        {
+            IsSuccess = resultObject?.IsSuccess ?? false;
+            Messages = resultObject?.Messages ?? new List<string>();
+            ReturnedObject = objectToAttachCanBeNull;
         }
     }
 }
